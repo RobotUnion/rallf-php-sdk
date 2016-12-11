@@ -1,0 +1,6 @@
+{
+  "name": "RobotUnion/robot-php-sdk",
+  "autoload": {
+    "psr-4": { "": "src/" }
+  }
+}
