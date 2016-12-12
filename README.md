@@ -1,4 +1,4 @@
-RobotUnion PHP SDK (this is experimental for now)
+RobotUnion PHP SDK (experimental)
 ==================
 
 Toolset to create Robot Apps for [R.A.L.F.](https://ralf.robotunion.net)
@@ -66,7 +66,11 @@ based on [Appium php client](https://github.com/appium/php-client)
     }
     ```
     
-## Run It
+## Run Debug
+    composer exec rr
+    
+## Compile `out/app.tsk`
+    composer exec rcc
 
 # API Documentation (selenium/appium based)
 ## Methods added
