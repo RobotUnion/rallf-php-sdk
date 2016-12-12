@@ -40,7 +40,7 @@ based on [Appium php client](https://github.com/appium/php-client)
   
     ```
     <?php
-    // File: robot-app-project/src/MyFirstRobotApp.php
+    // File: my-php-project/src/MyFirstRobotApp.php
     
     namespace myrobots;
     
