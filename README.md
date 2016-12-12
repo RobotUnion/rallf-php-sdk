@@ -9,6 +9,7 @@ based on [Appium php client](https://github.com/appium/php-client)
 # First steps
 ## Installation
   * Require `RobotUnion/robot-php-sdk` into `composer.json`
+  
     ```
     {
         "name": "username/my-php-project",
@@ -26,6 +27,7 @@ based on [Appium php client](https://github.com/appium/php-client)
     
 ## Create simple app
   * Create the robotapp manifest `manifest.json`
+  
     ```
     {
         "name": "My first robot app",
@@ -35,6 +37,7 @@ based on [Appium php client](https://github.com/appium/php-client)
     ```
     
   * Extend from `RobotUnion/Integration/Task`
+  
     ```
     <?php
     // File: robot-app-project/src/MyFirstRobotApp.php
@@ -62,6 +65,7 @@ based on [Appium php client](https://github.com/appium/php-client)
         $this->logger->debug("END");
     }
     ```
+    
 ## Run It
 
 # API Documentation (selenium/appium based)
