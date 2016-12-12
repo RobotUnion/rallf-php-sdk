@@ -1,4 +1,4 @@
-RobotUnion PHP SDK
+RobotUnion PHP SDK (this is experimental for now)
 ==================
 
 Toolset to create Robot Apps for [R.A.L.F.](https://ralf.robotunion.net)
