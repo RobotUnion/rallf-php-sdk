@@ -12,16 +12,29 @@ based on [Appium php client](https://github.com/appium/php-client)
   
     ```
     {
-        "name": "username/my-php-project",
-        "repositories": [
-            {
-                "type": "vcs",
-                "url": "https://github.com/RobotUnion/robot-php-sdk"
-            }
-        ],
-        "require": {
-            "robotunion/robot-php-sdk": "dev-master"
+      "name": "myrobot/my-task",
+      "repositories": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/RobotUnion/robot-php-sdk"
         }
+      ],
+      "require": {
+        "RobotUnion/robot-php-sdk": "dev-master"
+      },
+      "minimum-stability": "dev",
+      "prefer-stable": true,
+    
+      "autoload": {
+        "psr-4": {
+          "": "src/"
+        }
+      },
+      "autoload-dev": {
+        "psr-4": {
+          "Tests\\": "tests/"
+        }
+      }
     }
     ```
     
@@ -32,7 +45,7 @@ based on [Appium php client](https://github.com/appium/php-client)
     {
         "name": "My first robot app",
         "description": "here a brief description",
-        "main": "myrobots\\MyFirstApp"
+        "main": "MyRobots\\MyFirstApp"
     }
     ```
     
@@ -40,9 +53,9 @@ based on [Appium php client](https://github.com/appium/php-client)
   
     ```
     <?php
-    // File: my-php-project/src/MyFirstRobotApp.php
+    // File: my-php-project/src/MyRobots/MyFirstApp.php
     
-    namespace myrobots;
+    namespace MyRobots;
     
     use RobotUnion/Integration/Task;
     
