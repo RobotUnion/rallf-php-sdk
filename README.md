@@ -9,7 +9,21 @@ based on [Appium php client](https://github.com/appium/php-client)
 # First steps
 ## Installation
   * Require `RobotUnion/robot-php-sdk` into `composer.json`
-
+    ```
+    {
+        "name": "username/my-php-project",
+        "repositories": [
+            {
+                "type": "vcs",
+                "url": "https://github.com/RobotUnion/robot-php-sdk"
+            }
+        ],
+        "require": {
+            "robotunion/robot-php-sdk": "dev-master"
+        }
+    }
+    ```
+    
 ## Create simple app
   * Create the robotapp manifest `manifest.json`
     ```
