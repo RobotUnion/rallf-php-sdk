@@ -69,8 +69,8 @@ based on [Appium php client](https://github.com/appium/php-client)
 ## Run Debug
     composer exec rr
     
-## Compile `out/app.tsk`
-    composer exec rcc
+## Package `out/app.tsk`
+    composer exec rpkg
 
 # API Documentation (selenium/appium based)
 ## Methods added
