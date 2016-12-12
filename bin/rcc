@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+if ! test -d out;then
+    mkdir out
+fi
+
+zip -r out/app.tsk src vendor manifest.json
