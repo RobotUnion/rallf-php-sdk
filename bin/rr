@@ -35,6 +35,8 @@ upload(){
     curl -s -H "X-Signature: $xsignature" -F file=@- -X POST "$1"
 }
 
+url="https://api-staging.robotunion.net"
+
 # Example .robot.dev
 # {
 #   "user": "johndoe",
@@ -44,6 +46,7 @@ upload(){
 #   "developement_id": "xxxxxxxxxxx-xxxxxxxxxxxx-xxxxxxxxxx-xxxxx"
 # }
 
+# TODO: Implement select account
 if ! test -f .robot.dev;then
     echo "Developement not found, creating new one ... "
     echo -n "Listing accounts ... "
