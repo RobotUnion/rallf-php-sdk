@@ -35,7 +35,11 @@ upload(){
     curl -s -H "X-Signature: $xsignature" -F file=@- -X POST "$1"
 }
 
-url="https://api-staging.robotunion.net"
+url=`jq -r '.debug_url' < config/manifest.json`
+
+if [[ "$url" == "null" ]];then
+    url="https://api.robotunion.net"
+fi
 
 # Example .robot.dev
 # {
@@ -46,7 +50,6 @@ url="https://api-staging.robotunion.net"
 #   "developement_id": "xxxxxxxxxxx-xxxxxxxxxxxx-xxxxxxxxxx-xxxxx"
 # }
 
-# TODO: Implement select account
 if ! test -f .robot.dev;then
     echo "Developement not found, creating new one ... "
     echo -n "Listing accounts ... "
@@ -76,5 +79,6 @@ echo -n "Uploading ... "
 remoteObject=`upload "$url/app/v1/upload" < out/app.tsk | jq -r .data.src`
 echo "[ok]"
 echo -n "Launching ... "
-result=`echo "{\"package\": \"$remoteObject\", \"status\": \"launched\"}" | req PATCH "$url/user/v1/developments/$dev_id" | jq -r '.status'`
+result=`jq -nc --arg package "$remoteObject" --arg status "launched" '{$package, $status}' |\
+ req PATCH "$url/user/v1/developments/$dev_id" | jq -r '.status'`
 echo "[$result]"
