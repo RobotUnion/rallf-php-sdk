@@ -36,6 +36,7 @@ upload(){
 }
 
 url=`jq -r '.debug_url' < config/manifest.json`
+project_name=`jq -r '.name' < config/manifest.json`
 
 if [[ "$url" == "null" ]];then
     url="https://api.robotunion.net"
@@ -79,6 +80,6 @@ echo -n "Uploading ... "
 remoteObject=`upload "$url/app/v1/upload" < out/app.tsk | jq -r .data.src`
 echo "[ok]"
 echo -n "Launching ... "
-result=`jq -nc --arg package "$remoteObject" --arg status "launched" '{$package, $status}' |\
+result=`jq -nc --arg name "$project_name" --arg package "$remoteObject" --arg status "launched" '{$package, $status, $name}' |\
  req PATCH "$url/user/v1/developments/$dev_id" | jq -r '.status'`
 echo "[$result]"
