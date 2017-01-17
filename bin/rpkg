@@ -4,4 +4,4 @@ if ! test -d out;then
     mkdir out
 fi
 
-zip -qr out/app.tsk src vendor config composer.json
+zip -qr out/app.tsk src config composer.json
