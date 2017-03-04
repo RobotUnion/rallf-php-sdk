@@ -17,6 +17,7 @@ req(){
     signature=`echo -n $key$nonce$timestamp | sign $secret`
     xsignature="Signature access-key=\"$key\", nonce=\"$nonce\", timestamp=\"$timestamp\", version=\"$version\", signature=\"$signature\""
 
+    #echo "curl -i -s -H \"Content-Type: application/json\" -H \"X-Signature: $xsignature\" --data-binary @- -X \"$1\" \"$2\" | jq ."
     curl -s -H "Content-Type: application/json" -H "X-Signature: $xsignature" --data-binary @- -X "$1" "$2" | jq .
 }
 
@@ -48,38 +49,56 @@ fi
 #   "user_id": "xxxxxxxxxxxxx-xxxxxxxxxxx-xxxxxxxx-xxxxx",
 #   "account": "johndoe",
 #   "account_id": "xxxxxxxxxxxxx-xxxxxxxxxxx-xxxxxxxx-xxxxx",
-#   "developement_id": "xxxxxxxxxxx-xxxxxxxxxxxx-xxxxxxxxxx-xxxxx"
+#   "development_id": "xxxxxxxxxxx-xxxxxxxxxxxx-xxxxxxxxxx-xxxxx"
 # }
 
 if ! test -f .robot.dev;then
-    echo "Developement not found, creating new one ... "
+    echo "Development not found, creating new one ... "
     echo -n "Listing accounts ... "
-    req GET "$url/user/v1/profile" | \
-    jq -r '{user: .data.username, user_id: .data.id, account: .data.permissions[].account.name, account_id: .data.permissions[].account.id}' >\
-    .robot.dev.tmp
+    req GET "$url/user/v1/profile" | jq -r '{user: .data.username, user_id: .data.id, account: .data.permissions[].account.name, account_id: .data.permissions[].account.id}' > .robot.dev.tmp
     account_id=`jq -r '.account_id' < .robot.dev.tmp`
     account=`jq -r '.account' < .robot.dev.tmp`
     echo "found \"$account\" with ID $account_id"
-    echo -n "Creating Developement ... "
-    dev_id=`jq -nc --arg package "" --arg account_id "$account_id" '{$account_id, $package}' | req POST "$url/user/v1/developments" | jq -r '.data.id'`
-    jq --arg developement_id "$dev_id" '. * {$developement_id}' < .robot.dev.tmp > .robot.dev
+    echo -n "Creating Development ... "
+    dev_id=`jq -nc --arg account_id "$account_id" '{$account_id}' | req POST "$url/user/v1/developments" | jq -r '.data.id'`
+    jq --arg development_id "$dev_id" '. * {$development_id}' < .robot.dev.tmp > .robot.dev
     rm .robot.dev.tmp
+    echo -en "\e[32m"
     echo "[ok]"
+    echo -en "\e[0m"
 fi
 
 username=`jq -r '.user' < .robot.dev`
 account=`jq -r '.account' < .robot.dev`
 account_id=`jq -r '.account_id' < .robot.dev`
-dev_id=`jq -r '.developement_id' < .robot.dev`
-
+dev_id=`jq -r '.development_id' < .robot.dev`
 
 echo -n "Compiling ... "
 composer exec rpkg
+echo -en "\e[32m"
 echo "[ok]"
+echo -en "\e[0m"
+
 echo -n "Uploading ... "
 remoteObject=`upload "$url/app/v1/upload" < out/app.tsk | jq -r .data.src`
+echo -en "\e[32m"
 echo "[ok]"
+echo -en "\e[0m"
+
 echo -n "Launching ... "
-result=`jq -nc --arg name "$project_name" --arg package "$remoteObject" --arg status "launched" '{$package, $status, $name}' |\
- req PATCH "$url/user/v1/developments/$dev_id" | jq -r '.status'`
-echo "[$result]"
+jq -nc --arg name "$project_name" --arg package "$remoteObject" --arg status "launched" '{$package, $status, $name}' | req PATCH "$url/user/v1/developments/$dev_id" > .robot.dev.tmp
+result=`jq -r '.status' < .robot.dev.tmp`
+message=`jq -r '.message' < .robot.dev.tmp`
+
+rm .robot.dev.tmp
+if [[ "$result" == "error" ]];then
+    echo -en "\e[31m"
+    echo "[$result]"
+    echo $message
+    echo -en "\e[0m"
+else
+    echo -en "\e[32m"
+    echo "[$result]"
+    echo -en "\e[0m"
+
+fi
