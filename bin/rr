@@ -91,7 +91,7 @@ result=`jq -r '.status' < .robot.dev.tmp`
 message=`jq -r '.message' < .robot.dev.tmp`
 
 rm .robot.dev.tmp
-if [[ "$result" == "error" ]];then
+if [[ "$result" == "error" ]] || [[ "$result" == "critical" ]];then
     echo -en "\e[31m"
     echo "[$result]"
     echo $message
