@@ -1,7 +1,68 @@
-#!/usr/bin/env bash
+#!/usr/bin/env php
+<?php
 
-if ! test -d out;then
-    mkdir out
-fi
+class RallfPackager {
 
-zip -qr out/app.tsk src config composer.json
+    private $files;
+
+    /**
+     * RallfPackager constructor.
+     */
+    public function __construct(){
+        $this->clear();
+    }
+
+    public function clear(){
+        $this->files  = [];
+    }
+
+    /**
+     * @param $artifact
+     */
+    public function add($artifact){
+        if(is_file($artifact)) $this->addFile($artifact);
+        elseif (is_dir($artifact)) $this->addDir($artifact);
+    }
+
+    /**
+     * @param $file
+     */
+    public function addFile($file){
+        $this->files []= $file;
+    }
+
+    /**
+     * @param $dir
+     */
+    public function addDir($dir){
+        $contents = scandir($dir);
+        foreach ($contents as $artifact){
+            if($artifact != '.' && $artifact != '..')
+                $this->add($dir . '/' . $artifact);
+        }
+    }
+
+    /**
+     * @param $filename
+     */
+    public function write($filename){
+        $zip = new ZipArchive();
+        if(file_exists($filename)) unlink($filename);
+        if ($zip->open($filename, ZipArchive::CREATE)!==TRUE) {
+            exit("cannot open <$filename>\n");
+        }
+        foreach ($this->files as $file){
+            $zip->addFile($file, $file);
+        }
+        $zip->close();
+    }
+
+}
+
+if(!file_exists('out')) mkdir('out');
+
+$p = new RallfPackager();
+$p->add('src');
+$p->add('config');
+$p->add('composer.json');
+$p->write('out/app.tsk');

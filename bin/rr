@@ -1,47 +1,163 @@
-#!/usr/bin/env bash
+#!/usr/bin/env php
+<?php
 
-sign(){
-    # echo -n <message> | sign <hex_key>
-    openssl dgst -sha256 -mac HMAC -macopt hexkey:$1 | cut -d" " -f2
+class RallfSigner {
+
+    private $secret;
+
+    /**
+     * Signer constructor.
+     * @param $key
+     */
+    public function __construct($key)
+    {
+        $this->secret = $key;
+    }
+
+    public function sign($message){
+        return hash_hmac('SHA256', $message, hex2bin($this->secret));
+    }
 }
 
-req(){
-    # echo <json> | req <method> <url>
+class RallfRequester {
 
-    key=`jq -r '.key' < config/manifest.json`
-    secret=`jq -r '.secret' < config/manifest.json`
+    /**
+     * @var
+     */
+    private $config;
 
-    nonce=$RANDOM$RANDOM$RANDOM
-    timestamp=`date +%s`
-    version=1
-    signature=`echo -n $key$nonce$timestamp | sign $secret`
-    xsignature="Signature access-key=\"$key\", nonce=\"$nonce\", timestamp=\"$timestamp\", version=\"$version\", signature=\"$signature\""
+    /**
+     * Requester constructor.
+     * @param $config
+     */
+    public function __construct($config)
+    {
+        $this->config = $config;
+    }
 
-    #echo "curl -i -s -H \"Content-Type: application/json\" -H \"X-Signature: $xsignature\" --data-binary @- -X \"$1\" \"$2\" | jq ."
-    curl -s -H "Content-Type: application/json" -H "X-Signature: $xsignature" --data-binary @- -X "$1" "$2" | jq .
+    private function buildSignature(){
+
+        $signer = new RallfSigner($this->config->secret);
+        $nonce = uniqid();
+        $timestamp = time();
+        $version = 1;
+        $signature = $signer->sign($this->config->key.$nonce.$timestamp);
+        return "Signature access-key=\"{$this->config->key}\", nonce=\"$nonce\", timestamp=\"$timestamp\", version=\"$version\", signature=\"$signature\"";
+
+    }
+
+    public function request($method, $url, $params = []) {
+        $opts = [
+            'http' => [
+                'method' => $method,
+                'header' => "Accept: application/json\r\n" .
+                    "Content-Type: application/json\r\n" .
+                    "X-Signature: " . $this->buildSignature() . "\r\n",
+                'content' => json_encode($params),
+                'ignore_errors' => true
+            ]
+        ];
+
+        $ctx = stream_context_create($opts);
+        return json_decode(file_get_contents($this->config->url . $url, false, $ctx));
+    }
+
+    public function upload($url, $file){
+        $boundary = "------------------------------rallf" . microtime();
+
+        $headers = "Accept: application/json\r\n";
+        $headers .= "Content-Type: multipart/form-data; boundary=" . $boundary . "\r\n";
+        $headers .= "X-Signature: " . $this->buildSignature() . "\r\n";
+
+        $content =  "--" . $boundary . "\r\n";
+        $content .= "Content-Disposition: form-data; name=\"file\"; filename=\"app.tsk\"\r\n";
+        $content .= "Content-Type: application/zip\r\n\r\n";
+        $content .= file_get_contents($file) . "\r\n";
+        $content .= "--" . $boundary . "--\r\n";
+
+        $opts = [
+            'http' => [
+                'method' => 'POST',
+                'header' => $headers,
+                'content' => $content
+            ]
+        ];
+
+        $ctx = stream_context_create($opts);
+        return json_decode(file_get_contents($this->config->url . $url, false, $ctx));
+
+    }
 }
 
-upload(){
-    # echo <json> | req <method> <url>
+$config = json_decode(file_get_contents('config/manifest.json'));
+$config->url = "https://api.robotunion.net";
+if(isset($config->debug_url)) $config->url = $config->debug_url;
 
-    key=`jq -r '.key' < config/manifest.json`
-    secret=`jq -r '.secret' < config/manifest.json`
+$requester = new RallfRequester($config);
 
-    nonce=$RANDOM$RANDOM$RANDOM
-    timestamp=`date +%s`
-    version=1
-    signature=`echo -n $key$nonce$timestamp | sign $secret`
-    xsignature="Signature access-key=\"$key\", nonce=\"$nonce\", timestamp=\"$timestamp\", version=\"$version\", signature=\"$signature\""
+if(!file_exists('.robot.dev')) {
+    echo "Development not found, creating new one ...\n";
+    echo "Listing accounts ... ";
+    $response = $requester->request('GET', '/user/v1/profile');
+    $profile = $response->data;
+    //print_r($profile);
+    $numPermissions = count($profile->permissions);
+    echo "found " . $numPermissions . " accounts:\n";
 
-    curl -s -H "X-Signature: $xsignature" -F file=@- -X POST "$1"
+    for($i=0;$i<$numPermissions;$i++){
+        $account = $profile->permissions[$i]->account;
+        echo "[" . ($i+1) . "] " . $account->id . " (" . $account->name . ")\n";
+    }
+    $selected = 0;
+    if(count($profile->permissions) > 1) $selected = 1;
+    $account = $profile->permissions[$selected]->account;
+    echo " * Selecting (1) account '" . $account->name . "' (ID " . $account->id . ")\n";
+    echo "Creating new development ... ";
+    $response = $requester->request('POST', '/user/v1/developments', ['account_id' => $account->id]);
+    $development = $response->data;
+    echo $development->id . " created OK\n";
+
+    $identity = [
+        'user' => $profile->username,
+        'user_id' => $profile->id,
+        'account' => $account->name,
+        'account_id' => $account->id,
+        'development_id' => $development->id
+    ];
+    file_put_contents('.robot.dev', json_encode($identity));
 }
+else $identity = json_decode(file_get_contents('.robot.dev'), true);
 
-url=`jq -r '.debug_url' < config/manifest.json`
-project_name=`jq -r '.name' < config/manifest.json`
+echo "Compiling ... ";
+exec('composer exec rpkg');
+echo "[ok]\n";
 
-if [[ "$url" == "null" ]];then
-    url="https://api.robotunion.net"
-fi
+echo "Uploading ... ";
+$response = $requester->upload('/app/v1/upload', 'out/app.tsk');
+$path = $response->data->src;
+echo "[ok]\n";
+
+echo "Launching ... ";
+$resp = $requester->request(
+    'PATCH',
+    '/user/v1/developments/' . $identity['development_id'],
+    [
+        'name' => $config->name,
+        'package' => $path,
+        'status' => 'launched'
+    ]
+);
+
+switch($resp->status){
+    case "success":
+    case "ok":
+        echo "[ok]\n";
+        break;
+    default:
+        echo "[{$resp->status}]\n";
+        echo "{$resp->message}\n";
+        break;
+}
 
 # Example .robot.dev
 # {
@@ -51,54 +167,3 @@ fi
 #   "account_id": "xxxxxxxxxxxxx-xxxxxxxxxxx-xxxxxxxx-xxxxx",
 #   "development_id": "xxxxxxxxxxx-xxxxxxxxxxxx-xxxxxxxxxx-xxxxx"
 # }
-
-if ! test -f .robot.dev;then
-    echo "Development not found, creating new one ... "
-    echo -n "Listing accounts ... "
-    req GET "$url/user/v1/profile" | jq -r '{user: .data.username, user_id: .data.id, account: .data.permissions[].account.name, account_id: .data.permissions[].account.id}' > .robot.dev.tmp
-    account_id=`jq -r '.account_id' < .robot.dev.tmp`
-    account=`jq -r '.account' < .robot.dev.tmp`
-    echo "found \"$account\" with ID $account_id"
-    echo -n "Creating Development ... "
-    dev_id=`jq -nc --arg account_id "$account_id" '{$account_id}' | req POST "$url/user/v1/developments" | jq -r '.data.id'`
-    jq --arg development_id "$dev_id" '. * {$development_id}' < .robot.dev.tmp > .robot.dev
-    rm .robot.dev.tmp
-    echo -en "\e[32m"
-    echo "[ok]"
-    echo -en "\e[0m"
-fi
-
-username=`jq -r '.user' < .robot.dev`
-account=`jq -r '.account' < .robot.dev`
-account_id=`jq -r '.account_id' < .robot.dev`
-dev_id=`jq -r '.development_id' < .robot.dev`
-
-echo -n "Compiling ... "
-composer exec rpkg
-echo -en "\e[32m"
-echo "[ok]"
-echo -en "\e[0m"
-
-echo -n "Uploading ... "
-remoteObject=`upload "$url/app/v1/upload" < out/app.tsk | jq -r .data.src`
-echo -en "\e[32m"
-echo "[ok]"
-echo -en "\e[0m"
-
-echo -n "Launching ... "
-jq -nc --arg name "$project_name" --arg package "$remoteObject" --arg status "launched" '{$package, $status, $name}' | req PATCH "$url/user/v1/developments/$dev_id" > .robot.dev.tmp
-result=`jq -r '.status' < .robot.dev.tmp`
-message=`jq -r '.message' < .robot.dev.tmp`
-
-rm .robot.dev.tmp
-if [[ "$result" == "error" ]] || [[ "$result" == "critical" ]];then
-    echo -en "\e[31m"
-    echo "[$result]"
-    echo $message
-    echo -en "\e[0m"
-else
-    echo -en "\e[32m"
-    echo "[$result]"
-    echo -en "\e[0m"
-
-fi

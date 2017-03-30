@@ -3,5 +3,8 @@
   "autoload": {
     "psr-4": { "": "src/" }
   },
-  "bin": ["bin/rr", "bin/rpkg"]
+  "bin": ["bin/rr", "bin/rpkg"],
+  "require": {
+    "ext-zip": "*"
+  }
 }
