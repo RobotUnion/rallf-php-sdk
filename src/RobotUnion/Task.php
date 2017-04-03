@@ -6,4 +6,5 @@ abstract class Task implements Runnable {
     public $device;
     public $logger;
     public $robot;
+    public $input;
 }
