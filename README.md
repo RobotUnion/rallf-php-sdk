@@ -20,11 +20,8 @@ based on [Appium php client](https://github.com/appium/php-client)
         }
       ],
       "require": {
-        "RobotUnion/robot-php-sdk": "dev-master"
+        "RobotUnion/robot-php-sdk": "^1.0"
       },
-      "minimum-stability": "dev",
-      "prefer-stable": true,
-    
       "autoload": {
         "psr-4": {
           "": "src/"
@@ -43,9 +40,9 @@ based on [Appium php client](https://github.com/appium/php-client)
   
     ```
     {
-        "name": "My first robot app",
+        "name": "My first robot task",
         "description": "here a brief description",
-        "main": "MyRobots\\MyFirstApp"
+        "main": "MyRobots\\MyFirstTask"
     }
     ```
     
@@ -53,13 +50,13 @@ based on [Appium php client](https://github.com/appium/php-client)
   
     ```
     <?php
-    // File: my-php-project/src/MyRobots/MyFirstApp.php
+    // File: my-php-project/src/MyRobots/MyFirstTask.php
     
     namespace MyRobots;
     
     use RobotUnion/Integration/Task;
     
-    class MyFirstApp extends Task {
+    class MyFirstTask extends Task {
         
         //log START
         $this->logger->debug("START");
