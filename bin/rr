@@ -90,7 +90,7 @@ class RallfRequester {
 }
 
 $config = json_decode(file_get_contents('config/manifest.json'));
-$config->url = "https://api.robotunion.net";
+$config->url = "https://api.rallf.com";
 if(isset($config->debug_url)) $config->url = $config->debug_url;
 
 $requester = new RallfRequester($config);
