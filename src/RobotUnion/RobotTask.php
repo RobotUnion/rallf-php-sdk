@@ -14,14 +14,24 @@ abstract class RobotTask implements Runnable, Cancelable, Debuggable {
      */
     private $logger;
 
+    /** @var mixed $input */
+    private $input;
+
+    /** @var mixed $robot */
+    private $robot;
+
     /**
      * RobotTask constructor.
      * @param Driver $driver
      * @param Logger $logger
+     * @param $input
+     * @param $robot
      */
-    public function __construct(Driver $driver, Logger $logger) {
+    public function __construct(Driver $driver, Logger $logger, $input, $robot) {
         $this->driver = $driver;
         $this->logger = $logger;
+        $this->input = $input;
+        $this->robot = $robot;
     }
 
     /**
@@ -49,7 +59,21 @@ abstract class RobotTask implements Runnable, Cancelable, Debuggable {
         // TODO: Implement abort() method.
     }
 
+    /**
+     * @return mixed
+     */
+    public function getInput()
+    {
+        return $this->input;
+    }
 
+    /**
+     * @return mixed
+     */
+    public function getRobot()
+    {
+        return $this->robot;
+    }
 
 
 }
