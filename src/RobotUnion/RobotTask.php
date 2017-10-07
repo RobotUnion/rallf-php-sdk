@@ -38,4 +38,18 @@ abstract class RobotTask implements Runnable, Cancelable, Debuggable {
         return $this->logger;
     }
 
+
+    function cancel($reason = null)
+    {
+        // TODO: Implement cancel() method.
+    }
+
+    function abort($reason = null)
+    {
+        // TODO: Implement abort() method.
+    }
+
+
+
+
 }

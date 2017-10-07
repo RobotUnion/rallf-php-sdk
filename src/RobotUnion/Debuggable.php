@@ -9,12 +9,9 @@
 namespace RobotUnion\Integration;
 
 
-interface Debuggable
-{
-
+interface Debuggable {
     /**
      * @return Logger
      */
     function getLogger(): Logger;
-
 }
