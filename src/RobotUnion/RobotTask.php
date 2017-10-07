@@ -2,7 +2,7 @@
 
 namespace RobotUnion\Integration;
 
-abstract class RobotTask implements Runnable, Cancelable, Debuggable {
+abstract class RobotTask implements Runnable, Cancelable, Debuggable, Testable {
 
     /**
      * @var Driver $driver
