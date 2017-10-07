@@ -12,9 +12,9 @@ namespace RobotUnion\Integration;
 interface Runnable {
 
     /**
-     * @param null $input
-     * @param null $robot
+     * @param $input
+     * @param $robot
      * @return mixed
      */
-    function run($input = null, $robot = null);
+    function run($input, $robot);
 }
