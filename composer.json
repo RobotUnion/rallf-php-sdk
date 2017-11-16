@@ -4,6 +4,7 @@
     "psr-4": { "": "src/" }
   },
   "bin": ["bin/rr", "bin/rpkg", "bin/rd"],
+  "bin-dir": "./",
   "require": {
     "ext-zip": "*",
     "facebook/webdriver": "^1.5"
