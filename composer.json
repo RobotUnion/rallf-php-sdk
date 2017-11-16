@@ -5,6 +5,7 @@
   },
   "bin": ["bin/rr", "bin/rpkg"],
   "require": {
-    "ext-zip": "*"
+    "ext-zip": "*",
+    "facebook/webdriver": "^1.5"
   }
 }

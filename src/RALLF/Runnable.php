@@ -1,6 +1,6 @@
 <?php
 
-namespace RobotUnion\Integration;
+namespace RALLF\Integration;
 
 interface Runnable {
     function run();
