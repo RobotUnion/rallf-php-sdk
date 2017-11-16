@@ -18,7 +18,7 @@ class ConsoleLogger extends AbstractLogger {
      */
     function log($message, $data = null, $severity = Logger::SEVERITY_DEBUG, $channel = "")
     {
-        echo $channel . "[$severity]: $message";
+        echo $channel . "[" . $severity . "]: $message";
         if($data != null) echo " (" . json_encode($data) . ")";
         echo "\n";
     }
