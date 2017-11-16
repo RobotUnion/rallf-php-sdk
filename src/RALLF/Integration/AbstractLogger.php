@@ -8,15 +8,7 @@
 
 namespace RALLF\Integration;
 
-class AbstractLogger implements Logger {
-
-    /**
-     * @param string $message
-     * @param mixed $data
-     * @param int $severity , standard RFC3164 code (https://tools.ietf.org/html/rfc3164)
-     * @param string $channel
-     */
-    abstract function log($message, $data = null, $severity = Logger::SEVERITY_DEBUG, $channel = "");
+abstract class AbstractLogger implements Logger {
 
     /**
      * @param $message
