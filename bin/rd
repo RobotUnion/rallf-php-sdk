@@ -2,19 +2,30 @@
 <?php
 require getcwd() . '/vendor/autoload.php';
 
+if($argc < 4) {
+    echo "Usage: ". $argv[0] . " -s <selenium_url> -r <json_robot> -i <json_input> [-d <debug_id>] [-e <env>]";
+    exit(1);
+}
+
 $host = $argv[1];
-$input = json_decode($argv[2]);
-$robot = json_decode($argv[3]);
+$robot = json_decode($argv[2]);
+$input = json_decode($argv[3]);
+if($argc > 4) $debug_id = $argc[4];
+if($argc > 5) $env = $argc[5];
+else $env = "real";
 
 $driver = \Facebook\WebDriver\Remote\RemoteWebDriver::create(
-        $host,
-        \Facebook\WebDriver\Remote\DesiredCapabilities::chrome()
+    $host,
+    \Facebook\WebDriver\Remote\DesiredCapabilities::chrome()
 );
 
 $manifest = json_decode(file_get_contents('config/manifest.json'));
 
+if(isset($debug_id)) $logger = new \RALLF\Integration\RallfLogger();
+else $logger = new \RALLF\Integration\ConsoleLogger();
+
 /** @var \RALLF\Integration\Task $task */
-$task = new $manifest->main($driver, $input, $robot);
+$task = new $manifest->main($driver, $logger, $robot, $input);
 
-$task->run();
-
+if($env=='test') $task->mock();
+else $task->run();
