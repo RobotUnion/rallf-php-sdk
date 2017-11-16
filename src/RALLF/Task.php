@@ -4,7 +4,7 @@ namespace RALLF\Integration;
 
 use Facebook\WebDriver\Remote\RemoteWebDriver;
 
-abstract class Task implements Runnable {
+abstract class Task implements Runnable, Tester {
 
     private $driver;
     private $logger;
